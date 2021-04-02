@@ -20,7 +20,7 @@ class Search(DSLSearch):
         This method return a django queryset from the an elasticsearch result.
         It cost a query to the sql db.
         """
-        s = self.using(Elasticsearch(**settings.ELASTICSEARCH_URL)
+        s = self.using(Elasticsearch(**settings.ELASTICSEARCH_URL))
 
         # Do not query again if the es result is already cached
         if not hasattr(self, '_response'):
