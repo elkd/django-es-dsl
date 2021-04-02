@@ -26,6 +26,7 @@ class Search(DSLSearch):
         if not hasattr(self, '_response'):
             # We only need the meta fields with the models ids
             s = self.source(excludes=['*'])
+            s = self.using(Elasticsearch(**settings.ELASTICSEARCH_URL))
             s = s.execute()
 
         pks = [result.meta.id for result in s]
