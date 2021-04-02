@@ -3,7 +3,14 @@ from __future__ import unicode_literals, absolute_import
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from six.moves import input
+from elasticsearch_dsl.connections import connections
 from ...registries import registry
+
+
+connections.create_connection(
+    alias='custom_url',
+    **settings.ELASTICSEARCH_URL
+)
 
 
 class Command(BaseCommand):
@@ -110,7 +117,7 @@ class Command(BaseCommand):
     def _create(self, models, options):
         for index in registry.get_indices(models):
             self.stdout.write("Creating index '{}'".format(index._name))
-            index.create()
+            index.create(using='custom_url')
 
     def _populate(self, models, options):
         parallel = options['parallel']
@@ -136,7 +143,7 @@ class Command(BaseCommand):
 
         for index in registry.get_indices(models):
             self.stdout.write("Deleting index '{}'".format(index._name))
-            index.delete(ignore=404)
+            index.delete(using='custom_url', ignore=404)
         return True
 
     def _rebuild(self, models, options):

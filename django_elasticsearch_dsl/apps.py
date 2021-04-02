@@ -12,7 +12,12 @@ class DEDConfig(AppConfig):
 
     def ready(self):
         self.module.autodiscover()
-        connections.configure(**settings.ELASTICSEARCH_DSL)
+        #connections.configure(**settings.ELASTICSEARCH_DSL)
+        connections.create_connection(
+            alias='custom_url',
+            **settings.ELASTICSEARCH_URL
+        )
+        print(connections)
         # Setup the signal processor.
         if not self.signal_processor:
             signal_processor_path = getattr(
