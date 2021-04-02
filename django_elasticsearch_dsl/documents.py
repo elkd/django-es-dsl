@@ -5,6 +5,7 @@ from functools import partial
 
 from django import VERSION as DJANGO_VERSION
 from django.db import models
+from elasticseach import Elasticsearch
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
 from six import iteritems
@@ -62,6 +63,7 @@ class DocType(DSLDocument):
     def __hash__(self):
         return id(self)
 
+
     @classmethod
     def search(cls, using=None, index=None):
         return Search(
@@ -70,6 +72,9 @@ class DocType(DSLDocument):
             doc_type=[cls],
             model=cls.django.model
         )
+
+    def get_custom_client(self):
+        return Elasticsearch(**settings.ELASTICSEARCH_URL)
 
     def get_queryset(self):
         """
@@ -144,12 +149,12 @@ class DocType(DSLDocument):
             )
 
     def bulk(self, actions, **kwargs):
-        return bulk(client=settings.ELASTICSEARCH_URL, actions=actions, **kwargs)
+        return bulk(client=get_custom_client(), actions=actions, **kwargs)
 
     def parallel_bulk(self, actions, **kwargs):
         if self.django.queryset_pagination and 'chunk_size' not in kwargs:
             kwargs['chunk_size'] = self.django.queryset_pagination
-        bulk_actions = parallel_bulk(client=settings.ELASTICSEARCH_URL, actions=actions, **kwargs)
+        bulk_actions = parallel_bulk(client=get_custom_client(), actions=actions, **kwargs)
         # As the `parallel_bulk` is lazy, we need to get it into `deque` to run it instantly
         # See https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498/2
         deque(bulk_actions, maxlen=0)
