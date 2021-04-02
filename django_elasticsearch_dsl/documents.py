@@ -8,6 +8,7 @@ from django.db import models
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Document as DSLDocument
 from six import iteritems
+from django.conf import settings
 
 from .exceptions import ModelFieldNotMappedError
 from .fields import (
@@ -143,12 +144,12 @@ class DocType(DSLDocument):
             )
 
     def bulk(self, actions, **kwargs):
-        return bulk(client=self._get_connection(), actions=actions, **kwargs)
+        return bulk(client=settings.ELASTICSEARCH_URL, actions=actions, **kwargs)
 
     def parallel_bulk(self, actions, **kwargs):
         if self.django.queryset_pagination and 'chunk_size' not in kwargs:
             kwargs['chunk_size'] = self.django.queryset_pagination
-        bulk_actions = parallel_bulk(client=self._get_connection(), actions=actions, **kwargs)
+        bulk_actions = parallel_bulk(client=settings.ELASTICSEARCH_URL, actions=actions, **kwargs)
         # As the `parallel_bulk` is lazy, we need to get it into `deque` to run it instantly
         # See https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498/2
         deque(bulk_actions, maxlen=0)
