@@ -149,12 +149,12 @@ class DocType(DSLDocument):
             )
 
     def bulk(self, actions, **kwargs):
-        return bulk(client=get_custom_client(), actions=actions, **kwargs)
+        return bulk(client=self.get_custom_client(), actions=actions, **kwargs)
 
     def parallel_bulk(self, actions, **kwargs):
         if self.django.queryset_pagination and 'chunk_size' not in kwargs:
             kwargs['chunk_size'] = self.django.queryset_pagination
-        bulk_actions = parallel_bulk(client=get_custom_client(), actions=actions, **kwargs)
+        bulk_actions = parallel_bulk(client=self.get_custom_client(), actions=actions, **kwargs)
         # As the `parallel_bulk` is lazy, we need to get it into `deque` to run it instantly
         # See https://discuss.elastic.co/t/helpers-parallel-bulk-in-python-not-working/39498/2
         deque(bulk_actions, maxlen=0)
